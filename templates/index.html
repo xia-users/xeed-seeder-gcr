@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+<head>
+    <meta charset="UTF-8">
+    <title>XEED HTTP Module on Google Cloud Run</title>
+</head>
+<h2>Welcome to use Xeed - Http Module</h2>
+<p><strong>Introduction</strong></p>
+<p>This Xeed Module can capture Xeed HTTP flow and publish the message of X-I protocol to Pubsub which is one of the entry point of Insight Module</p>
+<p><strong>Access Point</strong> (Post Method to send, Get Method to check):</p>
+<ul>
+<li>https://..../publishers/pubsub/destinations/&lt;project_id&gt;/topics/&lt;topic_id&gt;</li>
+</ul>
+<p><strong>The http message must meet the following requirements:</strong></p>
+<ul>
+<li>Posted HTTP header must have at least one field with 'XEED-' prefix</li>
+<li>'Content-Type: text/plain' format is mandatory</li>
+<li>'Content-Encoding' should be 'gzip' when it exists</li>
+<li>HTTP message body must be a JSON String with 'header' or 'body' component</li>
+</ul>
+<p>Please check the project <a href="https://github.com/X-I-A/Xeed_slt">Xeed_slt</a> for a realization example</p>
+<p><strong>Xeed</strong> - <strong>Insight</strong> - <strong>Agent</strong> (X-I-A Architecture) is a full scope data solution.</p>
+<p>Connecting to <a href="https://www.linkedin.com/in/xia-chen-soral/">my profile @ Linkedin</a> to get the latest update</p>
+<p>This project is open-sourced <a href="https://github.com/X-I-A/xeed-http-gcr">@Github</a>. More detailed document could be found <a href="https://github.com/X-I-A/xeed-http-gcr">here</a>.</p>
+</html>
