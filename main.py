@@ -2,14 +2,31 @@ import os
 import base64
 import gzip
 import json
+import logging
 from functools import wraps
 from flask import Flask, request, Response, render_template, current_app
 from google.cloud import pubsub_v1
-from xialib_pubsub import PubsubPublisher
+import google.cloud.logging
+from xialib.service import service_factory
+from xialib_pubsub import PubsubPublisher, PubsubGcrPublisher
 from pyxeed import Seeder
 
 app = Flask(__name__)
-pub_client = pubsub_v1.PublisherClient()
+
+app.config["INSIGHT"] = os.environ.get("XEED_INSIGHT", "")
+app.config["DESTINATION"] = os.environ.get("XEED_DEST")
+app.config["TOPIC_ID"] = os.environ.get("XEED_TOPIC")
+app.config["SIZE_LIMIT"] = os.environ.get("XEED_SIZE_LIMIT", 0)
+
+# Configuration Load
+with open(os.path.join('.', 'config', 'global_conn_config.json')) as fp:
+    global_conn_config = json.load(fp)
+with open(os.path.join('.', 'config', 'object_config.json')) as fp:
+    object_config = json.load(fp)
+
+# Global Object Factory
+global_connectors = service_factory(global_conn_config)
+
 
 # Simple Authentification Service
 def check(authorization_header):
@@ -31,6 +48,11 @@ def login_required(f):
             return resp, 401
     return decorated
 
+# Log configuration
+client = google.cloud.logging.Client()
+client.get_default_handler()
+client.setup_logging()
+
 @app.route('/')
 def main():
     return render_template("index.html")
@@ -38,7 +60,6 @@ def main():
 @app.route('/push',methods=['GET', 'POST'])
 @login_required
 def push():
-    global pub_client
     http_header_dict = dict(request.headers)
     msg_headers = {key.lower()[5:].replace('-', '_'): value for (key, value) in http_header_dict.items() if
                   key.lower().startswith('xeed-')}
@@ -46,12 +67,10 @@ def push():
     topic_id = current_app.config["TOPIC_ID"]
     table_id = msg_headers.get('table_id', "")
 
-    active_publisher = PubsubPublisher(pub=pub_client)
-    publisher = {'pubsub': active_publisher}
-    seeder = Seeder(publisher=publisher)
+    seeder = service_factory(object_config, global_connectors)
 
     if request.method == 'GET':
-        if active_publisher.check_destination(destination, topic_id):
+        if seeder.check_destination(destination, topic_id):
             return render_template("message.html", project=destination, topic=topic_id)
         else:
             return 'Destination/Topic not found', 400
@@ -79,7 +98,18 @@ def push():
         else:
             content = gzip.decompress(request.data)
 
-    seeder.push_data(msg_headers, content, "pubsub", destination, topic_id, table_id, 0)
+    # Case 1: Send to Data Laker
+    if current_app.config.get("INSIGHT", ""):
+        default_seeder = Seeder(publisher=PubsubGcrPublisher())
+        default_seeder.push_data(msg_headers, content,
+                                 current_app.config["INSIGHT"], topic_id, table_id,
+                                 current_app.config["SIZE_LIMIT"])
+        logging.info("Data has been pushed to {}".format(current_app.config["INSIGHT"]))
+    # Case 2: Send to Destination
+    if current_app.config.get("INSIGHT", "") != current_app.config["DESTINATION"]:
+        # insight == destination means save to insight data-lake only
+        seeder.push_data(msg_headers, content, destination, topic_id, table_id, current_app.config["SIZE_LIMIT"])
+        logging.info("Data has been pushed to {}".format(current_app.config["DESTINATION"]))
     return 'Data has been pushed to the destination', 200
 
 if __name__ == '__main__':
