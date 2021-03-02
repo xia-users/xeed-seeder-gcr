@@ -5,7 +5,7 @@ SHELL:=/bin/bash
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
-config: ## Setting deploy configuration
+param: ## Setting deploy configuration
 	@TMP_PROJECT=$(shell gcloud config list --format 'value(core.project)'); \
 	read -e -p "Enter Your Project Name: " -i $${TMP_PROJECT} PROJECT_ID; \
 	gcloud config set project $${PROJECT_ID}; \
@@ -38,7 +38,7 @@ deploy: ## Deploy Cloud Run Image by using the last built image
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
 		--allow-unauthenticated \
-		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD};
+		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=test-001;
 
 update: ## Update User/Password
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
@@ -49,5 +49,5 @@ update: ## Update User/Password
 	gcloud run services update xeed-http \
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
-		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD};
+		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},;
 
