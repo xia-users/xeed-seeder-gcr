@@ -29,23 +29,23 @@ jobs:
       continue-on-error: true
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        gcloud iam service-accounts create ${{xia.sa-name}} --project ${PROJECT_ID}
+        gcloud pubsub topics create ${{xia.sa-name}} --project ${PROJECT_ID}
 
     - name: Role Assign
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
         gcloud projects add-iam-policy-binding ${PROJECT_ID} \
         --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
-        --role=roles/pubsub.publisher
-        gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-        --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
-        --role=roles/datastore.user
-        gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-        --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
-        --role=roles/storage.objectAdmin
+        --role=roles/${{xia.pub-role}}
         gcloud projects add-iam-policy-binding ${PROJECT_ID} \
         --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
         --role=roles/logging.logWriter
+
+    - name: Topic Creation
+      continue-on-error: true
+      run: |
+        PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
+        ${{xia.pub-create-topic}} --project ${PROJECT_ID}
 
     - name: Deploy
       run: |
