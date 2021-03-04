@@ -15,22 +15,22 @@ param: ## Setting deploy configuration
 	gcloud config set run/platform $${CLOUD_RUN_PLATFORM};
 
 init: ## Activation of API, creation of service account with publisher role
-	PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
+	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
 	gcloud iam service-accounts create ${{xia.sa-name}} \
-		--display-name "Cloud Run Xeed Http Endpoint"
+		--display-name "Cloud Run Xeed Http Endpoint"; \
 	gcloud projects add-iam-policy-binding $${PROJECT_ID} \
 		--member=serviceAccount:${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
-		--role=roles/run.invoker
+		--role=roles/run.invoker; \
 	gcloud projects add-iam-policy-binding $${PROJECT_ID} \
 		--member=serviceAccount:${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
 		--role=roles/${{xia.pub-role}}
 
 build: ## Build and upload Cloud Run Image
-	PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
+	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
 	gcloud builds submit --tag gcr.io/$${PROJECT_ID}/${{xia.service-name}};
 
 deploy: ## Deploy Cloud Run Image by using the last built image
-	PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
+	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
 	CLOUD_RUN_REGION=$(shell gcloud config list --format 'value(run.region)'); \
 	CLOUD_RUN_PLATFORM=$(shell gcloud config list --format 'value(run.platform)'); \
 	read -e -p "Enter Desired Username: " -i "user" XEED_USER; \
@@ -45,7 +45,7 @@ deploy: ## Deploy Cloud Run Image by using the last built image
 		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=${{xia.topic}};
 
 update: ## Update User/Password
-	PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
+	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
 	CLOUD_RUN_REGION=$(shell gcloud config list --format 'value(run.region)'); \
 	CLOUD_RUN_PLATFORM=$(shell gcloud config list --format 'value(run.platform)'); \
 	read -e -p "Enter Desired Username: " -i "user" XEED_USER; \
