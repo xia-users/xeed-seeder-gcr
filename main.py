@@ -5,7 +5,6 @@ import json
 import logging
 from functools import wraps
 from flask import Flask, request, Response, render_template, current_app
-from google.cloud import pubsub_v1
 import google.cloud.logging
 from xialib.service import service_factory
 from xialib_pubsub import PubsubPublisher, PubsubGcrPublisher
