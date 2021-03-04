@@ -35,9 +35,10 @@ deploy: ## Deploy Cloud Run Image by using the last built image
 	CLOUD_RUN_PLATFORM=$(shell gcloud config list --format 'value(run.platform)'); \
 	read -e -p "Enter Desired Username: " -i "user" XEED_USER; \
 	read -e -p "Enter Desired Password: " -i "La_vie_est_belle" XEED_PASSWORD; \
+	${{xia.pub-create-topic}}; \
 	gcloud run deploy ${{xia.service-name}} \
 		--image gcr.io/$${PROJECT_ID}/${{xia.service-name}} \
-    	--service-account ${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
+		--service-account ${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
 		--allow-unauthenticated \
