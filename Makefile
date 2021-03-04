@@ -16,18 +16,18 @@ param: ## Setting deploy configuration
 
 init: ## Activation of API, creation of service account with publisher role
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
-	gcloud iam service-accounts create ${{xia.sa-name}} \
+	gcloud iam service-accounts create gcr-xia-seeder-01 \
 		--display-name "Cloud Run Xeed Http Endpoint"; \
 	gcloud projects add-iam-policy-binding $${PROJECT_ID} \
-		--member=serviceAccount:${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
+		--member=serviceAccount:gcr-xia-seeder-01@$${PROJECT_ID}.iam.gserviceaccount.com \
 		--role=roles/run.invoker; \
 	gcloud projects add-iam-policy-binding $${PROJECT_ID} \
-		--member=serviceAccount:${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
-		--role=roles/${{xia.pub-role}}
+		--member=serviceAccount:gcr-xia-seeder-01@$${PROJECT_ID}.iam.gserviceaccount.com \
+		--role=roles/pubsub.publisher
 
 build: ## Build and upload Cloud Run Image
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
-	gcloud builds submit --tag gcr.io/$${PROJECT_ID}/${{xia.service-name}};
+	gcloud builds submit --tag gcr.io/$${PROJECT_ID}/xia-seeder-01;
 
 deploy: ## Deploy Cloud Run Image by using the last built image
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
@@ -35,14 +35,14 @@ deploy: ## Deploy Cloud Run Image by using the last built image
 	CLOUD_RUN_PLATFORM=$(shell gcloud config list --format 'value(run.platform)'); \
 	read -e -p "Enter Desired Username: " -i "user" XEED_USER; \
 	read -e -p "Enter Desired Password: " -i "La_vie_est_belle" XEED_PASSWORD; \
-	${{xia.pub-create-topic}}; \
-	gcloud run deploy ${{xia.service-name}} \
-		--image gcr.io/$${PROJECT_ID}/${{xia.service-name}} \
-		--service-account ${{xia.sa-name}}@$${PROJECT_ID}.iam.gserviceaccount.com \
+	gcloud pubsub topics create test-001; \
+	gcloud run deploy xia-seeder-01 \
+		--image gcr.io/$${PROJECT_ID}/xia-seeder-01 \
+		--service-account gcr-xia-seeder-01@$${PROJECT_ID}.iam.gserviceaccount.com \
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
 		--allow-unauthenticated \
-		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=${{xia.topic}};
+		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=test-001;
 
 update: ## Update User/Password
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
@@ -50,7 +50,7 @@ update: ## Update User/Password
 	CLOUD_RUN_PLATFORM=$(shell gcloud config list --format 'value(run.platform)'); \
 	read -e -p "Enter Desired Username: " -i "user" XEED_USER; \
 	read -e -p "Enter Desired Password: " -i "La_vie_est_belle" XEED_PASSWORD; \
-	gcloud run services update ${{xia.service-name}} \
+	gcloud run services update xia-seeder-01 \
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
 		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD};
