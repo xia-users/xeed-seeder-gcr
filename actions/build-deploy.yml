@@ -58,5 +58,5 @@ jobs:
         --service-account ${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
         --region europe-west1 \
         --platform managed \
-        --no-allow-unauthenticated \
+        --allow-unauthenticated \
         --update-env-vars XEED_USER=${{secrets.XEED_USER}},XEED_PASSWORD=${{secrets.XEED_PASSWORD}},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=${{xia.topic}};
