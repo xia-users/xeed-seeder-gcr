@@ -8,6 +8,7 @@ COPY LICENSE LICENSE
 COPY config config
 COPY static static
 COPY templates templates
+COPY requirements.txt requirements.txt
 COPY main.py main.py
 # Install production dependencies.
 RUN pip install -r requirements.txt
