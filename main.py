@@ -7,7 +7,7 @@ from functools import wraps
 from flask import Flask, request, Response, render_template, current_app
 import google.cloud.logging
 from xialib.service import service_factory
-from xialib_pubsub import PubsubPublisher, PubsubGcrPublisher
+from xialib_pubsub import PubsubGcrPublisher
 from pyxeed import Seeder
 
 app = Flask(__name__)
@@ -104,9 +104,8 @@ def push():
                                  current_app.config["INSIGHT"], topic_id, table_id,
                                  current_app.config["SIZE_LIMIT"])
         logging.info("Data has been pushed to {}".format(current_app.config["INSIGHT"]))
-    # Case 2: Send to Destination
+    # Case 2: Send to Destination: insight == destination means save to insight data-lake only
     if current_app.config.get("INSIGHT", "") != current_app.config["DESTINATION"]:
-        # insight == destination means save to insight data-lake only
         seeder.push_data(msg_headers, content, destination, topic_id, table_id, current_app.config["SIZE_LIMIT"])
         logging.info("Data has been pushed to {}".format(current_app.config["DESTINATION"]))
     return 'Data has been pushed to the destination', 200

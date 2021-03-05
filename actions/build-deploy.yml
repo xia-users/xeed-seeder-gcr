@@ -61,4 +61,4 @@ jobs:
         --region europe-west1 \
         --platform managed \
         --allow-unauthenticated \
-        --update-env-vars XEED_USER=${{secrets.XEED_USER}},XEED_PASSWORD=${{secrets.XEED_PASSWORD}},XEED_DEST=${PROJECT_ID},XEED_TOPIC=${{xia.topic}};
+        --update-env-vars XEED_USER=${{secrets.XEED_USER}},XEED_PASSWORD=${{secrets.XEED_PASSWORD}},XEED_DEST=${{xia.destination}},XEED_TOPIC=${{xia.topic}};
