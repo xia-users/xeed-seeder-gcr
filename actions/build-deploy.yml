@@ -29,7 +29,8 @@ jobs:
       continue-on-error: true
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        gcloud iam service-accounts create ${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com --display-name "Cloud Run Xeed Http Endpoint";
+        gcloud iam service-accounts create ${{xia.sa-name}}
+        --display-name "Cloud Run Xeed Http Endpoint";
 
     - name: Role Assign
       run: |
