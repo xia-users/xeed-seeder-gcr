@@ -42,7 +42,7 @@ deploy: ## Deploy Cloud Run Image by using the last built image
 		--region $${CLOUD_RUN_REGION} \
 		--platform managed \
 		--allow-unauthenticated \
-		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=$${PROJECT_ID},XEED_TOPIC=${{xia.topic}};
+		--update-env-vars XEED_USER=$${XEED_USER},XEED_PASSWORD=$${XEED_PASSWORD},XEED_DEST=${{xia.destination}},XEED_TOPIC=${{xia.topic}};
 
 update: ## Update User/Password
 	@PROJECT_ID=$(shell gcloud config list --format 'value(core.project)'); \
