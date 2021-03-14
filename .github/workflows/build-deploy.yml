@@ -22,14 +22,14 @@ jobs:
     - name: Build & Publish
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        docker build -t gcr.io/${PROJECT_ID}/${{xia.service-name}} .
-        docker push gcr.io/${PROJECT_ID}/${{xia.service-name}}
+        docker build -t gcr.io/${PROJECT_ID}/xia-seeder-02 .
+        docker push gcr.io/${PROJECT_ID}/xia-seeder-02
 
     - name: User Creation
       continue-on-error: true
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        gcloud iam service-accounts create ${{xia.sa-name}} \
+        gcloud iam service-accounts create gcr-xia-seeder-02 \
         --project ${PROJECT_ID} \
         --display-name "Cloud Run Xeed Http Endpoint"
 
@@ -37,28 +37,28 @@ jobs:
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
         gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-        --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
+        --member=serviceAccount:gcr-xia-seeder-02@${PROJECT_ID}.iam.gserviceaccount.com \
         --role=roles/logging.logWriter
         gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-        --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
+        --member=serviceAccount:gcr-xia-seeder-02@${PROJECT_ID}.iam.gserviceaccount.com \
         --role=roles/run.invoker
         gcloud projects add-iam-policy-binding ${PROJECT_ID} \
-        --member=serviceAccount:${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
-        --role=roles/${{xia.pub-role}}
+        --member=serviceAccount:gcr-xia-seeder-02@${PROJECT_ID}.iam.gserviceaccount.com \
+        --role=roles/run.invoker
 
     - name: Topic Creation
       continue-on-error: true
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        ${{xia.pub-create-topic}} --project ${PROJECT_ID}
+        gcloud pubsub topics create test-002 --project ${PROJECT_ID}
 
     - name: Deploy
       run: |
         PROJECT_ID=$(gcloud config list --format 'value(core.account)' | sed 's/.*@\(.*\)\.iam\.gserviceaccount.*/\1/')
-        gcloud run deploy ${{xia.service-name}} --image gcr.io/${PROJECT_ID}/${{xia.service-name}} \
+        gcloud run deploy xia-seeder-02 --image gcr.io/${PROJECT_ID}/xia-seeder-02 \
         --project ${PROJECT_ID} \
-        --service-account ${{xia.sa-name}}@${PROJECT_ID}.iam.gserviceaccount.com \
+        --service-account gcr-xia-seeder-02@${PROJECT_ID}.iam.gserviceaccount.com \
         --region europe-west1 \
         --platform managed \
         --allow-unauthenticated \
-        --update-env-vars XEED_USER=${{secrets.XEED_USER}},XEED_PASSWORD=${{secrets.XEED_PASSWORD}},XEED_DEST=${{xia.destination}},XEED_TOPIC=${{xia.topic}},XEED_INSIGHT=${{xia.insight}};
+        --update-env-vars XEED_USER=${{secrets.XEED_USER}},XEED_PASSWORD=${{secrets.XEED_PASSWORD}},XEED_DEST=xia-dispatcher-zmfr66omva-ew.a.run.app,XEED_TOPIC=test-002,XEED_INSIGHT=xia-receiver-zmfr66omva-ew.a.run.app;

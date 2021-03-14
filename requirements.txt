@@ -1,10 +1,6 @@
-google-cloud-logging
-xialib
-xialib-pubsub
-pyinsight
-xialib-gcs
-xialib-firestore
-google-cloud-firestore
 Flask
-google-cloud-pubsub
 gunicorn
+xialib
+google-cloud-logging
+pyxeed
+xialib-pubsub
